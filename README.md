@@ -14,7 +14,7 @@ Used parts (all parts I ordered from Temu):
 
 2. DAC: PCM5102
 
-3. OLED Display Module - I2C/IIC, 128x64
+3. OLED Display Module - I2C/IIC, 128x64: SSD1306
 
 4. KY-040 Rotary Encoder
 
