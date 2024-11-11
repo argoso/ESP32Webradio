@@ -17,3 +17,7 @@ Used parts:
 3. OLED Display Module - I2C/IIC, 128x64
 
 4. KY-040 Rotary Encoder
+
+Idee: 
+
+![Kassett](images/idee.jpg)
