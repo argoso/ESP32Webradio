@@ -24,4 +24,4 @@ Idea:
 
 ![Schematics](images/schema.png)
 
-![Schematics](images/kassett.png)
+![Kassett](images/kassett.jpg)
