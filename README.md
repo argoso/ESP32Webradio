@@ -8,7 +8,7 @@ and
 
 https://www.az-delivery.de/en/blogs/azdelivery-blog-fur-arduino-und-raspberry-pi/internet-radio-mit-dem-esp32
 
-Used parts:
+Used parts (all parts I ordered from Temu):
 
 1. ESP32 Lite V1.0.0 
 
