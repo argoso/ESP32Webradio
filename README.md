@@ -23,3 +23,5 @@ Idea:
 ![Kassett](images/idee.jpg)
 
 ![Schematics](images/schema.png)
+
+![Schematics](images/kassett.png)
