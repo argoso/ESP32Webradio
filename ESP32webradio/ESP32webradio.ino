@@ -9,20 +9,20 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define I2S_DOUT 2
-#define I2S_BCLK 3
+#define I2S_DOUT 17
+#define I2S_BCLK 16
 #define I2S_LRC 4
 
-#define ROTARY_ENCODER_A_PIN 12
-#define ROTARY_ENCODER_B_PIN 13
-#define ROTARY_ENCODER_BUTTON_PIN 14
+#define ROTARY_ENCODER_A_PIN 12 //DT
+#define ROTARY_ENCODER_B_PIN 13 //CLK
+#define ROTARY_ENCODER_BUTTON_PIN 14 //SW
 #define ROTARY_ENCODER_STEPS 4
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 #define SCREEN_ADDRESS 0x3C
-#define OLED_SDA 4
+#define OLED_SDA 2
 #define OLED_SCL 15 
 #define OLED_RST 16
 
@@ -121,8 +121,8 @@ const char* stationNames[] = {
 const int NUM_STATIONS = sizeof(stations) / sizeof(stations[0]);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-// Audio audio // for external DAC
-Audio audio(true, I2S_DAC_CHANNEL_BOTH_EN); // for internal DAC
+Audio audio // for external DAC
+//Audio audio(true, I2S_DAC_CHANNEL_BOTH_EN); // for internal DAC
 AiEsp32RotaryEncoder rotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 
 int currentStation = 10;

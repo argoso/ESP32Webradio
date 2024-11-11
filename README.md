@@ -18,6 +18,8 @@ Used parts:
 
 4. KY-040 Rotary Encoder
 
-Idee: 
+Idea: 
 
 ![Kassett](images/idee.jpg)
+
+![Schematics](images/schema.png)
