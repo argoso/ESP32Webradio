@@ -135,6 +135,8 @@ void IRAM_ATTR readEncoderISR() {
     rotaryEncoder.readEncoder_ISR();
 }
 
+
+
 void setup() {
     Serial.begin(115200);
     rotaryEncoder.begin();
@@ -180,6 +182,38 @@ void loop() {
     delay(10);
 }
 
+// UTF-8 dekooderi funktsioon
+String decodeUTF8(const char *input) {
+    String output = "";
+    while (*input) {
+        if ((*input & 0x80) == 0) {
+            // ASCII märk
+            output += *input;
+        } else if ((*input & 0xE0) == 0xC0) {
+            // 2-baidine UTF-8 märk
+            uint8_t first = *input & 0x1F;
+            uint8_t second = *(input + 1) & 0x3F;
+            uint16_t code = (first << 6) | second;
+
+            switch (code) {
+                case 0xE4: output += "ae"; break; // ä
+                case 0xF6: output += "oe"; break; // ö
+                case 0xF5: output += "o"; break;  // õ
+                case 0xFC: output += "ue"; break; // ü
+                case 0xC4: output += "Ae"; break; // Ä
+                case 0xD6: output += "Oe"; break; // Ö
+                case 0xD5: output += "O"; break;  // Õ
+                case 0xDC: output += "Ue"; break; // Ü
+                default: output += '?'; break;    // Asendustäht
+            }
+            input++; // Liigu järgmise baidi juurde
+        }
+        input++;
+    }
+    return output;
+}
+
+
 void connectToWiFi() {
     while (!makeWLAN())
     {
@@ -205,26 +239,24 @@ void connectToStation(int stationIndex) {
 void updateDisplay() {
     display.clearDisplay();
     display.setCursor(0, 0);
-    
+
     if (volumeMode) {
-        // Helitugevuse kuvamine
         display.print("Volume: ");
         display.println(currentVolume);
     } else {
-        // Jaama nimi ja voogesituse pealkiri
         display.print("Station: ");
-        display.println(stationNames[currentStation]);
+        display.println(decodeUTF8(stationNames[currentStation]));
         display.setCursor(0, 16);
-        display.println(streamTitle);  // Kuvab voogesituse pealkirja
+        display.println(decodeUTF8(streamTitle));
     }
-    
+
     display.display();
 }
 
 // Audio tagasiside voogesituse pealkirja jaoks
 void audio_showstreamtitle(const char *info) {
     Serial.print("streamtitle: "); Serial.println(info);
-    strncpy(streamTitle, info, sizeof(streamTitle) - 1);
-    streamTitle[sizeof(streamTitle) - 1] = '\0'; // Tagab null-lõpetuse
-    updateDisplay();  // Kuvatakse voogesituse pealkiri
+    String decodedTitle = decodeUTF8(info);
+    decodedTitle.toCharArray(streamTitle, sizeof(streamTitle));
+    updateDisplay();  // Kuvatakse dekodeeritud voogesituse pealkiri
 }
