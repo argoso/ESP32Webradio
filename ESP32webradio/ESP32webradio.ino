@@ -1,5 +1,5 @@
 // You need to use audio libary from: https://github.com/schreibfaul1/ESP32-audioI2S
-// Inspirde by https://en.polluxlabs.net/esp32-esp8266-projects/esp32-internet-radio/ and
+// Inspired by https://en.polluxlabs.net/esp32-esp8266-projects/esp32-internet-radio/ and
 // https://www.az-delivery.de/en/blogs/azdelivery-blog-fur-arduino-und-raspberry-pi/internet-radio-mit-dem-esp32
 #include <Arduino.h>
 #include <WiFi.h>
@@ -8,6 +8,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Preferences.h> // Lisatud Preferences-teek
 
 #define I2S_DOUT 17
 #define I2S_BCLK 16
@@ -122,8 +123,8 @@ const int NUM_STATIONS = sizeof(stations) / sizeof(stations[0]);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Audio audio; // for external DAC
-// Audio audio(true, I2S_DAC_CHANNEL_BOTH_EN); // for internal DAC
 AiEsp32RotaryEncoder rotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
+Preferences preferences; // Loon Preferences objekti
 
 int currentStation = 10;
 int currentVolume = 10;  // Algväärtus helitugevusele 10 (0-20 vahemikus)
@@ -135,13 +136,37 @@ void IRAM_ATTR readEncoderISR() {
     rotaryEncoder.readEncoder_ISR();
 }
 
-
+// Funktsioon UTF-8 tähemärkide dekodeerimiseks
+String decodeUTF8(const char* text) {
+    String decoded = "";
+    unsigned char c;
+    while ((c = *text++)) {
+        if (c < 128) { // ASCII tähemärgid
+            decoded += (char)c;
+        } else if (c < 0xC0) {
+            // Ignoreerime
+        } else if (c < 0xE0) {
+            decoded += (char)(((c & 0x1F) << 6) | (*text++ & 0x3F));
+        } else {
+            decoded += (char)(((c & 0x0F) << 12) | ((*text++ & 0x3F) << 6) | (*text++ & 0x3F));
+        }
+    }
+    return decoded;
+}
 
 void setup() {
     Serial.begin(115200);
     rotaryEncoder.begin();
     rotaryEncoder.setup(readEncoderISR);
+
+    // Loen salvestatud väärtused mälust
+    preferences.begin("radio", false);
+    currentStation = preferences.getInt("lastStation", 10);
+    currentVolume = preferences.getInt("lastVolume", 10);
+    preferences.end();
+
     rotaryEncoder.setBoundaries(0, NUM_STATIONS - 1, false);
+    rotaryEncoder.setEncoderValue(currentStation);
 
     pinMode(OLED_RST, OUTPUT);
     digitalWrite(OLED_RST, LOW);
@@ -169,6 +194,7 @@ void loop() {
             currentStation = constrain(rotaryEncoder.readEncoder(), 0, NUM_STATIONS - 1);
             connectToStation(currentStation);
         }
+        savePreferences(); // Salvestan väärtused kohe, kui need muutuvad
         updateDisplay();
     }
 
@@ -182,43 +208,26 @@ void loop() {
     delay(10);
 }
 
-// UTF-8 dekooderi funktsioon
-String decodeUTF8(const char *input) {
-    String output = "";
-    while (*input) {
-        if ((*input & 0x80) == 0) {
-            // ASCII märk
-            output += *input;
-        } else if ((*input & 0xE0) == 0xC0) {
-            // 2-baidine UTF-8 märk
-            uint8_t first = *input & 0x1F;
-            uint8_t second = *(input + 1) & 0x3F;
-            uint16_t code = (first << 6) | second;
-
-            switch (code) {
-                case 0xE4: output += "ae"; break; // ä
-                case 0xF6: output += "oe"; break; // ö
-                case 0xF5: output += "o"; break;  // õ
-                case 0xFC: output += "ue"; break; // ü
-                case 0xC4: output += "Ae"; break; // Ä
-                case 0xD6: output += "Oe"; break; // Ö
-                case 0xD5: output += "O"; break;  // Õ
-                case 0xDC: output += "Ue"; break; // Ü
-                default: output += '?'; break;    // Asendustäht
-            }
-            input++; // Liigu järgmise baidi juurde
-        }
-        input++;
-    }
-    return output;
+// Funktsioon salvestamiseks NVS-i
+void savePreferences() {
+    preferences.begin("radio", false);
+    preferences.putInt("lastStation", currentStation);
+    preferences.putInt("lastVolume", currentVolume);
+    preferences.end();
 }
 
-
+// Audio tagasiside voogesituse pealkirja jaoks
+void audio_showstreamtitle(const char *info) {
+    Serial.print("streamtitle: "); Serial.println(info);
+    String decodedTitle = decodeUTF8(info);
+    decodedTitle.toCharArray(streamTitle, sizeof(streamTitle));
+    updateDisplay();  // Kuvatakse dekodeeritud voogesituse pealkiri
+}
+// Wifi'ga ühendamine protseduur wlanconfig.ino failist
 void connectToWiFi() {
-    while (!makeWLAN())
-    {
-      Serial.println("Cannot connect :(");
-      delay(1000);
+    while (!makeWLAN()) {
+        Serial.println("Cannot connect :(");
+        delay(1000);
     }
     Serial.println("Connected");
 }
@@ -251,12 +260,4 @@ void updateDisplay() {
     }
 
     display.display();
-}
-
-// Audio tagasiside voogesituse pealkirja jaoks
-void audio_showstreamtitle(const char *info) {
-    Serial.print("streamtitle: "); Serial.println(info);
-    String decodedTitle = decodeUTF8(info);
-    decodedTitle.toCharArray(streamTitle, sizeof(streamTitle));
-    updateDisplay();  // Kuvatakse dekodeeritud voogesituse pealkiri
 }

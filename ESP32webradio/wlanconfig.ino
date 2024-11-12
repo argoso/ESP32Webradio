@@ -46,7 +46,8 @@
 AsyncWebServer server(80);
 
 // WLAN credentials
-Preferences preferences;
+//Preferences preferences;
+
 String ssid;
 String password;
 String ntpserver;
