@@ -41,21 +41,21 @@ const char* stations[] = {
     "https://edge06.cdn.bitflip.ee:8888/kadi",
     "https://router.euddn.net/8103046e16b71d15d692b57c187875c7/elmar.aac",
     "http://router.euddn.net/8103046e16b71d15d692b57c187875c7/radioduo.aac",
-    "http://icecast.err.ee/raadio2.opus",
-    "http://icecast.err.ee/r2rock.opus",
-    "http://icecast.err.ee/r2pop.opus",
-    "https://icecast.err.ee/r2p.opus",
-    "http://icecast.err.ee/r2chill.opus",
-    "http://icecast.err.ee/r2alternatiiv.opus",
-    "http://icecast.err.ee/r2eesti.opus",
+    "http://icecast.err.ee/raadio2.mp3",
+    "http://icecast.err.ee/r2rock.mp3",
+    "http://icecast.err.ee/r2pop.mp3",
+    "https://icecast.err.ee/r2p.mp3",
+    "http://icecast.err.ee/r2chill.mp3",
+    "http://icecast.err.ee/r2alternatiiv.mp3",
+    "http://icecast.err.ee/r2eesti.mp3",
     "https://ice.leviracloud.eu/phr96-aac",
     "https://edge03.cdn.bitflip.ee:8888/NRJ",
     "http://router.euddn.net/8103046e16b71d15d692b57c187875c7/myhits.aac",
     "http://5.39.16.62:8004/tre",
-    "http://icecast.err.ee/klassikaraadio.opus",
-    "http://icecast.err.ee/klaranostalgia.opus",
-    "http://icecast.err.ee/klaraklassika.opus",
-    "http://icecast.err.ee/klarajazz.opus",
+    "http://icecast.err.ee/klassikaraadio.mp3",
+    "http://icecast.err.ee/klaranostalgia.mp3",
+    "http://icecast.err.ee/klaraklassika.mp3",
+    "http://icecast.err.ee/klarajazz.mp3",
     "https://stream.skymedia.ee/live/KissPride",
     "https://stream.skymedia.ee/live/KissEurovisioon",
     "https://stream.skymedia.ee/live/KISS",
@@ -190,7 +190,7 @@ void connectToWiFi() {
 }
 
 void initializeAudio() {
-    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT); // For external DAC
     audio.setVolume(currentVolume);
     connectToStation(currentStation);
 }

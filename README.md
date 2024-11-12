@@ -1,6 +1,6 @@
 Another ESP32 Webradio project. The code contains 42 Estonian web radio streams. But of course you can replace them with the ones that suit you. 
 
-You can find information at: https://www.radio-browser.info/countries
+You can find information at: https://www.radio-browser.info/countries and https://fmstream.org/index.php?c=EST
 
 You need to use audio libary from: https://github.com/schreibfaul1/ESP32-audioI2S
 
