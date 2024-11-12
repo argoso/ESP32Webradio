@@ -30,7 +30,7 @@ Since this ESP32 (Wemos Lolin32 lite v1.0.0) also has a LiPo connection option, 
 
 In the Arduino IDE, I chose the "ESP32 Dev Module" board because it gives more options for configuring the flashing (partitioning, etc.). However, there is no need to change them in this project.
 
-Wifi settings are not written in to code. If the device cannot connect to the WiFi network for some reason, it starts in AP mode and creates AP "WEBRADIO". You then connect to it and go to Url: http:\\192.168.4.1 and enter your WiFi data. Corresponding information is also displayed on the Oled display. Note: ESP32 does not support 5G Wifi, only 2.4G
+Wifi settings are not written in to code. If the device cannot connect to the WiFi network for some reason, it starts in AP mode and creates AP "WEBRADIO". You then connect to it and go to Url: "http:\\\192.168.4.1" and enter your WiFi data. Corresponding information is also displayed on the Oled display. Note: ESP32 does not support 5G Wifi, only 2.4G
 
 Pressing the Rotary Encoder switches modes between station mode and volume mode
 
