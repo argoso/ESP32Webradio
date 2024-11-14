@@ -123,6 +123,7 @@ const int NUM_STATIONS = sizeof(stations) / sizeof(stations[0]);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Audio audio; // for external DAC
+// Audio audio(true, I2S_DAC_CHANNEL_BOTH_EN); // for internal DAC ESP32
 AiEsp32RotaryEncoder rotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 Preferences preferences; // Loon Preferences objekti
 
@@ -246,7 +247,7 @@ void connectToWiFi() {
 }
 
 void initializeAudio() {
-    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT); // For external DAC
+    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT); // for external DAC
     audio.setVolume(currentVolume);
     connectToStation(currentStation);
 }
