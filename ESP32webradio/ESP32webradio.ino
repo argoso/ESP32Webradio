@@ -137,21 +137,34 @@ void IRAM_ATTR readEncoderISR() {
 }
 
 // Funktsioon UTF-8 tähemärkide dekodeerimiseks
-String decodeUTF8(const char* text) {
-    String decoded = "";
-    unsigned char c;
-    while ((c = *text++)) {
-        if (c < 128) { // ASCII tähemärgid
-            decoded += (char)c;
-        } else if (c < 0xC0) {
-            // Ignoreerime
-        } else if (c < 0xE0) {
-            decoded += (char)(((c & 0x1F) << 6) | (*text++ & 0x3F));
-        } else {
-            decoded += (char)(((c & 0x0F) << 12) | ((*text++ & 0x3F) << 6) | (*text++ & 0x3F));
+String decodeUTF8(const char *input) {
+    String output = "";
+    while (*input) {
+        if ((*input & 0x80) == 0) {
+            // ASCII märk
+            output += *input;
+        } else if ((*input & 0xE0) == 0xC0) {
+            // 2-baidine UTF-8 märk
+            uint8_t first = *input & 0x1F;
+            uint8_t second = *(input + 1) & 0x3F;
+            uint16_t code = (first << 6) | second;
+
+            switch (code) {
+                case 0xE4: output += "ae"; break; // ä
+                case 0xF6: output += "oe"; break; // ö
+                case 0xF5: output += "o"; break;  // õ
+                case 0xFC: output += "ue"; break; // ü
+                case 0xC4: output += "Ae"; break; // Ä
+                case 0xD6: output += "Oe"; break; // Ö
+                case 0xD5: output += "O"; break;  // Õ
+                case 0xDC: output += "Ue"; break; // Ü
+                default: output += '?'; break;    // Asendustäht
+            }
+            input++; // Liigu järgmise baidi juurde
         }
+        input++;
     }
-    return decoded;
+    return output;
 }
 
 void setup() {
