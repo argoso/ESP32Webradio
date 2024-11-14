@@ -41,3 +41,5 @@ Prototype:
 ![Schematics](images/schema.png)
 
 ![Kassett](images/kassett.jpg)
+
+![Inside](images/inside.jpg)
