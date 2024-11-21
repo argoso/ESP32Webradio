@@ -8,7 +8,10 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Preferences.h> // Lisatud Preferences-teek
+#include "FreeMono6pt8b.h" 
+#include <Preferences.h>
+#include <unordered_map>
+#include <String>
 
 #define I2S_DOUT 17
 #define I2S_BCLK 16
@@ -26,6 +29,9 @@
 #define OLED_SDA 2
 #define OLED_SCL 15 
 #define OLED_RST 16
+
+#define LINE1_Y 10 // Esimese rea Y-koordinaat
+#define LINE2_Y 20 // Teise rea Y-koordinaat
 
 const char* stations[] = {
     "https://ice.leviracloud.eu/starFMEesti96-aac",
@@ -123,7 +129,7 @@ const int NUM_STATIONS = sizeof(stations) / sizeof(stations[0]);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Audio audio; // for external DAC
-// Audio audio(true, I2S_DAC_CHANNEL_BOTH_EN); // for internal DAC ESP32
+//Audio audio(true, I2S_DAC_CHANNEL_BOTH_EN); // for internal DAC ESP32
 AiEsp32RotaryEncoder rotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 Preferences preferences; // Loon Preferences objekti
 
@@ -137,7 +143,20 @@ void IRAM_ATTR readEncoderISR() {
     rotaryEncoder.readEncoder_ISR();
 }
 
-// Funktsioon UTF-8 tähemärkide dekodeerimiseks
+// Loome map'i, et seostada Unicode väärtused fondifailis olevate märkidega
+const std::unordered_map<uint16_t, char> FontMap = {
+    {0x00E4, 0xC4}, // ä
+    {0x00F6, 0xD6}, // ö
+    {0x00F5, 0xD5}, // õ
+    {0x00FC, 0xDC}, // ü
+    {0x00C4, 0xA4}, // Ä
+    {0x00D6, 0xB6}, // Ö
+    {0x00D5, 0xB5}, // Õ
+    {0x00DC, 0xBC}, // Ü
+    {0x20AC, 0x84}, // €
+};
+
+// Dekodeerimise funktsioon
 String decodeUTF8(const char *input) {
     String output = "";
     while (*input) {
@@ -150,16 +169,11 @@ String decodeUTF8(const char *input) {
             uint8_t second = *(input + 1) & 0x3F;
             uint16_t code = (first << 6) | second;
 
-            switch (code) {
-                case 0xE4: output += "ae"; break; // ä
-                case 0xF6: output += "oe"; break; // ö
-                case 0xF5: output += "o"; break;  // õ
-                case 0xFC: output += "ue"; break; // ü
-                case 0xC4: output += "Ae"; break; // Ä
-                case 0xD6: output += "Oe"; break; // Ö
-                case 0xD5: output += "O"; break;  // Õ
-                case 0xDC: output += "Ue"; break; // Ü
-                default: output += '?'; break;    // Asendustäht
+            // Kasutame FontMap'i sümboli leidmiseks
+            if (FontMap.find(code) != FontMap.end()) {
+                output += FontMap.at(code);
+            } else {
+                output += '?'; // Tundmatu sümbol
             }
             input++; // Liigu järgmise baidi juurde
         }
@@ -191,7 +205,7 @@ void setup() {
         Serial.println(F("OLED init failed"));
         return;
     }
-    display.setTextSize(1);
+    //display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
 
     connectToWiFi();
@@ -232,7 +246,7 @@ void savePreferences() {
 
 // Audio tagasiside voogesituse pealkirja jaoks
 void audio_showstreamtitle(const char *info) {
-    Serial.print("streamtitle: "); Serial.println(info);
+    //Serial.print("streamtitle: "); Serial.println(info);
     String decodedTitle = decodeUTF8(info);
     decodedTitle.toCharArray(streamTitle, sizeof(streamTitle));
     updateDisplay();  // Kuvatakse dekodeeritud voogesituse pealkiri
@@ -261,17 +275,23 @@ void connectToStation(int stationIndex) {
 // Uuenda ekraanikuva
 void updateDisplay() {
     display.clearDisplay();
-    display.setCursor(0, 0);
+    display.setFont(&FreeMono6pt8b);
+    display.setCursor(0, LINE1_Y);
 
     if (volumeMode) {
         display.print("Volume: ");
         display.println(currentVolume);
     } else {
         // display.print("Station: ");
-        display.println(decodeUTF8(stationNames[currentStation]));
-        display.setCursor(0, 16);
-        display.println(decodeUTF8(streamTitle));
+        String stationName = decodeUTF8(stationNames[currentStation]);
+        if (stationName.length() > 17) {
+            stationName = stationName.substring(0, 17);
+        }
+        display.println(stationName);
+        Serial.println(stationName);
+        display.setCursor(0, LINE2_Y);
+        display.println(streamTitle);
+        Serial.println(streamTitle);
     }
-
     display.display();
 }
