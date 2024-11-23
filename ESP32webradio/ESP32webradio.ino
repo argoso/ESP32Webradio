@@ -13,22 +13,22 @@
 #include <unordered_map>
 #include <String>
 
-#define I2S_DOUT 17
-#define I2S_BCLK 16
-#define I2S_LRC 4
+#define I2S_DOUT 19 //DIN
+#define I2S_BCLK 23 //BCK
+#define I2S_LRC 22 //LCK
 
-#define ROTARY_ENCODER_A_PIN 12 //DT
-#define ROTARY_ENCODER_B_PIN 13 //CLK
-#define ROTARY_ENCODER_BUTTON_PIN 14 //SW
+#define ROTARY_ENCODER_A_PIN 14 //DT
+#define ROTARY_ENCODER_B_PIN 12 //CLK
+#define ROTARY_ENCODER_BUTTON_PIN 27 //SW
 #define ROTARY_ENCODER_STEPS 4
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 #define SCREEN_ADDRESS 0x3C
-#define OLED_SDA 2
-#define OLED_SCL 15 
-#define OLED_RST 16
+#define OLED_SDA 17
+#define OLED_SCL 16
+//#define OLED_RST 16
 
 #define LINE1_Y 10 // Esimese rea Y-koordinaat
 #define LINE2_Y 20 // Teise rea Y-koordinaat
@@ -196,10 +196,10 @@ void setup() {
     rotaryEncoder.setBoundaries(0, NUM_STATIONS - 1, false);
     rotaryEncoder.setEncoderValue(currentStation);
 
-    pinMode(OLED_RST, OUTPUT);
-    digitalWrite(OLED_RST, LOW);
-    delay(20);
-    digitalWrite(OLED_RST, HIGH);
+    //pinMode(OLED_RST, OUTPUT);
+    //digitalWrite(OLED_RST, LOW);
+    //delay(20);
+    //digitalWrite(OLED_RST, HIGH);
     Wire.begin(OLED_SDA, OLED_SCL);
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("OLED init failed"));
