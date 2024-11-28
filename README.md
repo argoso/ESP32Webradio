@@ -22,8 +22,6 @@ Used parts. I bought them from Temu:
 
 4. KY-040 Rotary Encoder
 
-NB! You may not be able to program ESP32s when peripherals are connected, as their power consumption prevents this.
-
 Without problems, the components will not fit into the cartridge case, and you will have to cut it internally and remove the connectors that are already attached. In the picture below, I haven't finished it yet and I haven't fixed the components and I haven't made a window for the oled screen either.
 
 Since this ESP32 (Wemos Lolin32 lite v1.0.0) also has a LiPo connection option, you can use it as an independent player. My goal was to connect it to my old receiver.
