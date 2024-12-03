@@ -81,8 +81,7 @@ Station stations[] = {
     {"39: Duo Rock", "http://router.euddn.net/8103046e16b71d15d692b57c187875c7/rokk.aac"},
     {"40: Duo Party", "https://router.euddn.net/8103046e16b71d15d692b57c187875c7/duodance.aac"},
     {"41: Duo Country", "http://router.euddn.net/8103046e16b71d15d692b57c187875c7/dc_duocountry.aac"},
-    {"42: DFM", "http://router.euddn.net/8103046e16b71d15d692b57c187875c7/dfm.mp3"},
-    {"43: Äripäeva Raadio", "https://www.aripaev.ee/raadio/stream.mp3"}
+    {"42: Äripäeva Raadio", "https://www.aripaev.ee/raadio/stream.mp3"}
 };
 
 const int NUM_STATIONS = sizeof(stations) / sizeof(stations[0]);
@@ -93,11 +92,14 @@ Audio audio; // for external DAC
 AiEsp32RotaryEncoder rotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 Preferences preferences; // Loon Preferences objekti
 
-int currentStation = 10;
+int currentStation = 10; // Jaama algväärtus
 int currentVolume = 10;  // Helitugevuse algväärtus 10 (0-20 vahemikus)
 bool volumeMode = false; // False tähendab jaama valimist, true tähendab helitugevuse muutmist
 
 char streamTitle[64] = "";  // Voogesituse pealkirja salvestamiseks
+
+unsigned long lastStationChangeTime = 0;  // Viimane jaama muutmise aeg
+int lastStationIndex = -1;                // Viimane valitud jaam
 
 void IRAM_ATTR readEncoderISR() {
     rotaryEncoder.readEncoder_ISR();
@@ -165,7 +167,7 @@ void setup() {
         Serial.println(F("OLED init failed"));
         return;
     }
-    //display.setTextSize(1);
+
     display.setTextColor(SSD1306_WHITE);
 
     connectToWiFi();
@@ -180,24 +182,34 @@ void loop() {
             audio.setVolume(currentVolume);
         } else {
             currentStation = constrain(rotaryEncoder.readEncoder(), 0, NUM_STATIONS - 1);
-            connectToStation(currentStation);
+            if (currentStation != lastStationIndex) {
+                lastStationIndex = currentStation;
+                lastStationChangeTime = millis();  // Uuenda muutmise aega
+                audio.stopSong();                 // Peata voogesitus, kui jaama muudeti
+            }
         }
-        savePreferences(); // Salvestan väärtused
+        savePreferences();  // Salvestan väärtused
         updateDisplay();
+    }
+
+    // Kontrolli, kas jaama pole viimase 1,5 sekundi jooksul muudetud
+    if (millis() - lastStationChangeTime > 1500 && currentStation == lastStationIndex) {
+        connectToStation(currentStation);  // Ühendu jaamaga
+        lastStationIndex = -1;             // Väldi korduvat ühendust
     }
 
     if (rotaryEncoder.isEncoderButtonClicked()) {
         volumeMode = !volumeMode;
         if (volumeMode) {
-            rotaryEncoder.setBoundaries(0, 20, false); // Helitugevuse piirid
-            rotaryEncoder.setEncoderValue(currentVolume); // Taasta helitugevuse väärtus
+            rotaryEncoder.setBoundaries(0, 20, false);  // Helitugevuse piirid
+            rotaryEncoder.setEncoderValue(currentVolume);
         } else {
-            rotaryEncoder.setBoundaries(0, NUM_STATIONS - 1, false); // Jaamade piirid
-            rotaryEncoder.setEncoderValue(currentStation); // Taasta jaama väärtus
+            rotaryEncoder.setBoundaries(0, NUM_STATIONS - 1, false);  // Jaamade piirid
+            rotaryEncoder.setEncoderValue(currentStation);
         }
-    updateDisplay();
+        updateDisplay();
+    }
 
-}
     audio.loop();
     delay(10);
 }
@@ -212,7 +224,6 @@ void savePreferences() {
 
 // Audio tagasiside voogesituse pealkirja jaoks
 void audio_showstreamtitle(const char *info) {
-    //Serial.print("streamtitle: "); Serial.println(info);
     String decodedTitle = decodeUTF8(info);
     decodedTitle.toCharArray(streamTitle, sizeof(streamTitle));
     updateDisplay();  // Kuvatakse dekodeeritud voogesituse pealkiri
@@ -255,7 +266,7 @@ void updateDisplay() {
             stationName = stationName.substring(0, 17);
         }
         display.println(stationName);
-        Serial.println(stationName);
+        Serial.println(stations[currentStation].name);
         display.setCursor(0, LINE2_Y);
         display.println(streamTitle);
         Serial.println(streamTitle);
